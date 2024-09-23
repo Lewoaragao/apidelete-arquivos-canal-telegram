@@ -32,25 +32,36 @@ async def main():
     # Lista para armazenar IDs das mensagens
     message_ids = []
     total_deleted = 0
+    lote_count = 0  # Contador de lotes
 
     async for message in client.iter_messages(channel):
-        if message.file:  # Apaga apenas mensagens que têm arquivos
+        # Descomentar essa linha para apagar apenas mensagens que têm arquivos
+        if message.file:
+	# Descomentar essa linha para apagar todos os tipos de mensagens
+        # if message:
             message_ids.append(message.id)
 
             # Se atingir 100 mensagens, apaga em lote
             if len(message_ids) == 100:
+                lote_count += 1
                 await client.delete_messages(channel, message_ids)
                 total_deleted += len(message_ids)
+                
+                logging.info(f"Lote {lote_count} apagou 100 mensagens. Total até agora: {total_deleted} mensagens apagadas.")
+                
                 message_ids.clear()  # Limpa a lista após a exclusão
-                await asyncio.sleep(1)  # Delay de 1 segundo entre as exclusões em lote
+                await asyncio.sleep(5)  # Delay de 5 segundos entre as exclusões em lote
 
     # Apaga quaisquer mensagens restantes que não foram apagadas em lote
     if message_ids:
+        lote_count += 1
         await client.delete_messages(channel, message_ids)
         total_deleted += len(message_ids)
+        
+        logging.info(f"Lote {lote_count} apagou {len(message_ids)} mensagens restantes. Total até agora: {total_deleted} mensagens apagadas.")
 
     logging.info(
-        f"{total_deleted} mensagens com arquivos foram apagadas do canal {CHANNEL}."
+        f"{total_deleted} mensagens foram apagadas no total do canal {CHANNEL}."
     )
 
 
